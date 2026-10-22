@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="description" content="任务与课程日历，统一管理计划、资料和提醒。"><title>待办日历 · 把重要的事，安排好。</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23c47d00'/%3E%3Cpath d='M18 33l9 9 19-23' stroke='white' stroke-width='6' fill='none'/%3E%3C/svg%3E"><link rel="stylesheet" href="/styles.css"><script defer src="/utils.js"></script><script defer src="/app.js"></script></head>
+<body>
+<section id="login-page" class="login-page" aria-labelledby="login-title" hidden>
+  <form id="login-form" class="login-card" action="/api/v1/session" method="post" autocomplete="on">
+    <span class="eyebrow">TASK PLANNER</span><h1 id="login-title">登录待办日历</h1>
+    <p>登录状态保留 30 天。请仅在信任的设备上保存口令。</p>
+    <label for="login-username">用户名</label>
+    <input id="login-username" name="username" type="text" autocomplete="username" value="planner" readonly required>
+    <label for="login-password">访问口令</label>
+    <input id="login-password" name="accessPassword" type="password" autocomplete="current-password" required maxlength="1024" aria-describedby="login-error">
+    <p id="login-error" class="form-error" role="alert" aria-live="polite"></p>
+    <button id="login-submit" class="primary" type="submit">登录</button>
+    <small>可使用浏览器密码管理器保存或填充口令；是否提示保存由浏览器设置决定。网页不会将口令写入浏览器本地存储。</small>
+  </form>
+</section>
+<div id="planner-page" hidden>
+<a class="skip" href="#main">跳到主要内容</a>
+<aside class="sidebar">
+  <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">✓</span><span>待办日历<small>一点秩序，更多从容</small></span></a>
+  <div class="semester"><span class="eyebrow">TASK PLANNER</span><strong>任务与课程工作台</strong><span id="local-status">正在连接服务器后端</span></div>
+  <nav aria-label="页面导航" id="page-nav" class="page-nav">
+    <a href="/" data-page="home" class="page-link"><span class="nav-symbol">◎</span><span>首页</span></a>
+    <a href="/tasks" data-page="tasks" class="page-link"><span class="nav-symbol">≡</span><span>任务清单</span></a>
+    <a href="/tasks?scope=completed" class="page-link"><span class="nav-symbol">✓</span><span>已完成任务</span></a>
+    <a href="/calendar" data-page="calendar" class="page-link"><span class="nav-symbol">▦</span><span>周历</span></a>
+    <a href="/data" data-page="data" class="page-link"><span class="nav-symbol">⇅</span><span>数据与导入</span></a>
+    <a href="/qq" data-page="qq" class="page-link"><span class="nav-symbol">✆</span><span>QQ 提醒设置</span></a>
+  </nav>
+  <div class="sidebar-heading">课程与项目 <span id="category-total"></span></div>
+  <nav aria-label="课程与项目" id="categories" class="categories"></nav>
+  <div class="sidebar-foot"><span class="local-dot"></span> 云端服务 · QQ 分阶段提醒<p>给计划留一点空白，<br>也给自己留一点余地。</p></div>
+</aside>
+<main id="main" tabindex="-1">
+  <header class="topline"><span>学业 / 科研 / 生活</span><time id="today-label"></time></header>
+
+    <section class="sync-bar" aria-label="后端同步"><span id="sync-status" role="status">正在连接后端…</span><button id="sync-retry">重试 / 同步</button><button id="access-logout" type="button">退出登录</button></section>
+  <section id="page-home" class="page" data-page-name="home" hidden>
+    <section class="hero"><div><span class="eyebrow">MAKE ROOM FOR WHAT MATTERS</span><h1>把重要的事，<br class="mobile-break">安排好。</h1><p>从这里开始，让这个学期更有条理。</p></div><button class="primary add-main" id="add-task" data-write><span aria-hidden="true">＋</span> 新建任务</button></section>
+    <div id="storage-error" class="banner error" role="alert" hidden></div>
+
+    <div id="live-message" class="message" role="status" aria-live="polite"></div>
+    <section class="stats" aria-label="全局任务统计" id="stats"></section>
+    <section class="source-notice"><span class="notice-mark" aria-hidden="true">i</span><div><strong>先确认日期，再安心出发</strong><p>导入自己的课表与课程资料后，可按对应课程的上课时间推算“下周 / 下次课 / 第 N 周 / 缺年份日期”，并在任务备注保留依据。未导入课表或无法确认的日期仍保持待定，请对照最新通知核对。</p></div></section>
+    <section class="home-cards" aria-label="快速入口">
+      <a class="home-card" href="/tasks"><span class="eyebrow">TASKS</span><h2>任务清单</h2><p id="home-task-count">—</p><small>浏览、搜索、筛选与编辑全部任务</small></a>
+      <a class="home-card" href="/calendar"><span class="eyebrow">WEEK</span><h2>周历</h2><p id="home-dated-count">—</p><small>按周展开每天的课程和截止任务</small></a>
+      <a class="home-card" href="/qq"><span class="eyebrow">REMINDERS</span><h2>QQ 提醒设置</h2><p id="home-qq-summary">—</p><small>绑定机器人、测试提醒与阶段说明</small></a>
+      <a class="home-card" href="/data"><span class="eyebrow">DATA</span><h2>数据与导入</h2><p id="home-data-summary">—</p><small>备份、恢复与新文件批量导入</small></a>
+    </section>
+  </section>
+
+  <section id="page-tasks" class="page" data-page-name="tasks" hidden>
+    <section class="hero page-hero"><div><span class="eyebrow">TASKS</span><h1 id="view-title">任务清单</h1><p id="result-count"></p></div><button class="primary add-main" id="add-task-tasks" data-write><span aria-hidden="true">＋</span> 新建任务</button></section>
+    <div class="workspace-banner" id="tasks-error-slot"></div>
+    <section id="course-info" class="course-info" hidden><h2>课程资源</h2><div id="course-resources" class="course-resources"></div></section>
+    <section class="workspace" aria-label="任务工作区">
+      <div class="workspace-heading"><div><span class="workspace-sub" id="active-scope-label"></span></div><div class="segmented" aria-label="显示方式"><button id="view-list" aria-pressed="true">清单</button><button id="view-calendar" aria-pressed="false">周历视图</button></div></div>
+      <div class="toolbar"><label><span class="sr-only">任务状态</span><select id="scope-filter"><option value="active">待办任务</option><option value="completed">已完成任务</option><option value="all">全部任务</option><option value="today">今天</option><option value="upcoming">未来七天</option><option value="undated">待定日期</option><option value="overdue">已逾期</option></select></label><label class="search-label"><span class="sr-only">搜索标题、备注和来源</span><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="搜索任务、备注或来源…" maxlength="200"></label><label><span class="sr-only">优先级筛选</span><select id="priority-filter"><option value="">所有优先级</option><option value="1">紧急</option><option value="2">重要</option><option value="3">普通</option><option value="4">低优先级</option></select></label><label><span class="sr-only">任务排序</span><select id="sort"><option value="due">按日期排序</option><option value="priority">按优先级排序</option><option value="newest">最近创建</option><option value="title">按标题排序</option></select></label><button id="clear-filters" class="text-button">重置筛选</button></div>
+      <div id="active-filter" class="active-filter"></div>
+      <div id="calendar-area" hidden><div class="calendar-heading"><h3 id="month-title"></h3><div><button id="month-prev" aria-label="上一周">‹</button><button id="month-today">本周</button><button id="month-next" aria-label="下一周">›</button></div></div><p class="calendar-help">一周七天展开已确认截止时间的任务；未定日期任务仍在清单视图中。</p><div class="weekdays" aria-hidden="true"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div><div id="calendar-grid" class="calendar-grid week-grid" aria-label="一周截止任务"></div><div id="day-heading" class="day-heading"></div></div>
+      <div id="task-list" class="task-list"></div>
+    </section>
+  </section>
+
+  <section id="page-calendar" class="page" data-page-name="calendar" hidden>
+    <section class="hero page-hero"><div><span class="eyebrow">CALENDAR</span><h1>周历</h1><p id="calendar-count"></p></div><button class="primary add-main" id="add-task-calendar" data-write><span aria-hidden="true">＋</span> 新建任务</button></section>
+    <div class="workspace-banner" id="calendar-error-slot"></div>
+    <section class="workspace" aria-label="周历视图">
+      <div class="calendar-heading"><h3 id="calendar-month-title"></h3><div><button id="cal-prev" aria-label="上一周">‹</button><button id="cal-today">本周</button><button id="cal-next" aria-label="下一周">›</button></div></div>
+      <p class="calendar-help">一周七天展开课程和截止任务；课程显示时间与地点，已完成任务仍可撤回。</p>
+      <div class="weekdays" aria-hidden="true"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+      <div id="calendar-page-grid" class="calendar-grid week-grid" aria-label="一周课程与任务"></div>
+      <div id="calendar-day-heading" class="day-heading" hidden></div>
+      <div id="calendar-day-list" class="task-list" hidden></div>
+    </section>
+  </section>
+
+  <section id="page-qq" class="page" data-page-name="qq" hidden>
+    <section class="hero page-hero"><div><span class="eyebrow">REMINDERS</span><h1>QQ 提醒设置</h1><p>两台机器人独立绑定、独立投递。</p></div></section>
+    <div class="workspace-banner" id="qq-error-slot"></div>
+    <section class="workspace qq-page">
+      <div id="qq-status" role="status">正在获取 QQ 状态…</div>
+      <div id="qq-bots" class="qq-bots" aria-label="两个 QQ 机器人独立绑定与测试"></div>
+      <article class="qq-guide">
+        <h2>绑定步骤（每台机器人各一次）</h2>
+        <ol>
+          <li>在对应机器人卡片点「生成配对码」。</li>
+          <li>用你的 QQ <strong>私聊该机器人</strong>，发送页面显示的 <code>/bind 码</code>。两台机器人的码不同，不能混用。</li>
+          <li>卡片显示「已绑定」后，点「发送测试」并在 QQ 中确认收到。</li>
+        </ol>
+        <h2>提醒阶段</h2>
+        <p>按任务设置的提前天数开始：首次提前 N 天 → 提前 3 天（若更近）→ 提前 1 天 → 当天 → 逾期 1 / 3 / 7 天。越临近措辞越紧迫；完成任务、关闭提醒或删除任务后停止。</p>
+        <h2>重要限制</h2>
+        <ul>
+          <li>QQ 主动消息受会话窗口、平台权益和配额限制；接口受理不等于已送达。长期未交互请先给机器人发一条消息。</li>
+          <li>提醒由云端服务执行，关电脑不影响；但服务或网关异常时会暂停并合并补发最近阶段。</li>
+          <li>配对码 10 分钟有效，请勿截图或外传。</li>
+        </ul>
+      </article>
+    </section>
+  </section>
+
+  <section id="page-data" class="page" data-page-name="data" hidden>
+    <section class="hero page-hero"><div><span class="eyebrow">DATA</span><h1>数据与导入</h1><p>任务保存在云端后端，备份在你手里。</p></div></section>
+    <div class="workspace-banner" id="data-error-slot"></div>
+    <section class="workspace data-page">
+      <article class="utility-card">
+        <span class="eyebrow">BACKUP</span><h2>备份与恢复</h2>
+        <p>导出完整 JSON 备份（含全部任务、完成状态与来源）。导入备份是验证确认后的整体替换，后端会先自动备份当前数据。</p>
+        <div class="utility-actions"><button id="export-json">导出 JSON 备份</button><button id="import-json" data-write>导入备份</button><button id="export-legacy">导出旧浏览器数据</button><input type="file" id="import-file" accept=".json,application/json" hidden></div>
+        <small>旧版浏览器数据不会自动上传；请先导出，人工核对后再导入。旧分钟提醒转换为提前 1 天。</small>
+      </article>
+      <article class="utility-card">
+        <span class="eyebrow">CALENDAR FILE</span><h2>导出系统日历</h2>
+        <p>导出全部已确认日期的未完成任务为 .ics，一次性导入系统日历；不是订阅，网页修改不会自动同步。QQ 阶段提醒由云端独立执行，与 ICS 互为备份。</p>
+        <div class="utility-actions"><button id="export-ics">导出日历 .ics</button></div>
+      </article>
+      <article class="utility-card">
+        <span class="eyebrow">FILE IMPORT</span><h2>新文件批量导入</h2>
+        <p>把新资料放进学期文件夹后，对 agent 说「调用 semester-task-import Skill」，它会扫描新增和修改的文件、语义提取任务，并根据课表把“下周 / 下次课 / 第 N 周”等转换为具体上课时间，再经 API 去重导入。</p>
+        <label class="file-import-label">更新课表（.ics）<input type="file" id="schedule-file" accept=".ics,text/calendar"></label><button id="import-schedule" data-write>导入课表</button><p id="schedule-import-result" class="field-help" role="status"></p>
+        <small>支持的格式：TXT / Markdown / CSV / DOCX / PPTX / 可提取文本的 PDF。扫描版 PDF 和图片会标记待核对，不会伪装成功。</small>
+      </article>
+    </section>
+  </section>
+
+  <div id="page-message" class="message page-message" role="status" aria-live="polite"></div>
+  <footer>慢慢来，也是在向前。<span>云端工作台 / 统一任务与提醒</span></footer>
+</main>
+</div>
+<dialog id="task-dialog" aria-labelledby="dialog-title"><form id="task-form"><header class="dialog-header"><div><span class="eyebrow">ONE THING AT A TIME</span><h2 id="dialog-title">新建任务</h2></div><button type="button" id="close-dialog" aria-label="关闭任务窗口">×</button></header><div class="form-body"><label>任务标题 <span class="required">*</span><input name="title" required maxlength="200" placeholder="接下来，要完成什么？"></label><div class="form-row"><label>课程 / 项目<select name="category" id="task-category"></select></label><label>自定义分类（选填）<input name="customCategory" maxlength="100" placeholder="填写后使用此分类"></label></div><div class="form-row"><label>优先级<select name="priority"><option value="1">紧急</option><option value="2">重要</option><option value="3" selected>普通</option><option value="4">低优先级</option></select></label><label>确认日期与时间（北京时间，选填）<input name="due" type="datetime-local" min="1900-01-01T00:00" max="9998-12-31T23:59"></label></div><p class="field-help">留空表示待定，不会触发提醒或导出日历。填写时间即表示你已确认，统一使用北京时间（UTC+8），不随设备时区变化。</p><div class="form-row"><label>提前提醒<select name="remind"><option value="-1">不提醒</option><option value="0">当天</option><option value="1440">提前 1 天</option><option value="2880">提前 2 天</option><option value="4320" selected>提前 3 天</option><option value="7200">提前 5 天</option><option value="10080">提前 7 天</option><option value="20160">提前 14 天</option><option value="43200">提前 30 天</option></select></label><label>日历事件时长（分钟）<input name="duration" type="number" min="1" max="1440" step="1" value="30" required></label></div><p class="field-help" id="reminder-preview"></p><label>备注<textarea name="notes" rows="3" maxlength="10000" placeholder="步骤、提交要求，或想提醒自己的话…"></textarea></label><details class="source-detail" id="dialog-source" open><summary>来源记录 · 只读</summary><p id="form-source"></p></details><p id="form-error" class="form-error" role="alert"></p></div><div class="dialog-actions"><button type="button" id="cancel-dialog">取消</button><button class="primary" type="submit" data-write>保存任务</button></div></form></dialog>
+<dialog id="confirm-dialog" aria-labelledby="confirm-title"><form method="dialog"><h2 id="confirm-title">请确认</h2><p id="confirm-text"></p><div class="dialog-actions"><button value="cancel" autofocus>取消</button><button value="yes" class="primary">确认</button></div></form></dialog>
+<noscript><p class="banner error">本页面需要启用 JavaScript 才能管理任务。</p></noscript>
+</body></html>

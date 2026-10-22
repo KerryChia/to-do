@@ -1,0 +1,49 @@
+# Runtime data, extracted source text, logs and backups
+/data/
+/logs/
+/backups/
+/private/
+/ingest-runs/
+*.sqlite*
+*.db
+*.db-*
+*.jsonl
+*.log
+*.receipt.json
+*.bak
+*.backup
+*.tmp
+*.next
+
+# Credentials and environment files
+.env
+.env.*
+!.env.example
+*.env
+!*.env.example
+*.credentials
+*.pem
+*.key
+*.p12
+*.pfx
+*password*.txt
+session-secret
+owner-state.json
+
+# Local inputs and personal fixtures
+seed-data.*
+schedule.ics
+!fixtures/sample-schedule.ics
+
+# Interpreter/editor/build output
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+node_modules/
+.coverage
+.pytest_cache/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

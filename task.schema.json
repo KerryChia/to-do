@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Planner v1 task (input)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "category",
+    "completed",
+    "createdAt",
+    "due",
+    "duration",
+    "firedKey",
+    "id",
+    "kind",
+    "notes",
+    "priority",
+    "priorityDefault",
+    "remind",
+    "source",
+    "sourceNotes",
+    "sourceTiming",
+    "title",
+    "updatedAt"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "maxLength": 100,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 200,
+      "pattern": "^[^\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f]*$",
+      "minLength": 1
+    },
+    "category": {
+      "type": "string",
+      "maxLength": 100,
+      "pattern": "^[^\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f]*$",
+      "minLength": 1
+    },
+    "due": {
+      "type": "string",
+      "anyOf": [
+        {
+          "const": ""
+        },
+        {
+          "pattern": "^(?:19\\d{2}|[2-9]\\d{3})-\\d{2}-\\d{2}T\\d{2}:\\d{2}$"
+        }
+      ],
+      "description": "Backend also verifies actual calendar date and year <=9998. Asia/Shanghai local time."
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 10000,
+      "pattern": "^[^\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f]*$"
+    },
+    "source": {
+      "type": "string",
+      "maxLength": 1000,
+      "pattern": "^[^\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f]*$"
+    },
+    "sourceNotes": {
+      "type": "string",
+      "maxLength": 3000,
+      "pattern": "^[^\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f]*$"
+    },
+    "sourceTiming": {
+      "type": "string",
+      "maxLength": 2000,
+      "pattern": "^[^\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f]*$"
+    },
+    "kind": {
+      "type": "string",
+      "maxLength": 40,
+      "pattern": "^[^\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f]*$",
+      "enum": [
+        "assignment",
+        "milestone",
+        "suggestion",
+        "manual"
+      ],
+      "minLength": 1
+    },
+    "firedKey": {
+      "type": "string",
+      "maxLength": 100,
+      "pattern": "^[^\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f]*$"
+    },
+    "createdAt": {
+      "type": "string",
+      "maxLength": 40,
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+      "minLength": 1,
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "maxLength": 40,
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+      "minLength": 1,
+      "format": "date-time"
+    },
+    "priority": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4
+    },
+    "duration": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1440
+    },
+    "remind": {
+      "type": "integer",
+      "enum": [
+        -1,
+        0,
+        5,
+        15,
+        30,
+        60,
+        1440,
+        2880,
+        4320,
+        7200,
+        10080,
+        20160,
+        43200
+      ],
+      "description": "Legacy 5/15/30/60 migrate to1440 and clear firedKey"
+    },
+    "completed": {
+      "type": "boolean"
+    },
+    "priorityDefault": {
+      "type": "boolean"
+    }
+  },
+  "description": "firedKey must be empty or due|remind; validated in backend. Text is data, not HTML."
+}

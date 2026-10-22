@@ -1,0 +1,22 @@
+[Unit]
+Description=To-do task calendar
+After=network.target
+
+[Service]
+Type=simple
+User=planner
+Group=planner
+WorkingDirectory=/srv/to-do
+Environment=PLANNER_PUBLIC_ORIGIN=https://planner.example.com
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/usr/bin/python3 /srv/to-do/server.py --bind 127.0.0.1 --port 8766 --data-dir /var/lib/to-do/data --access-password-file /etc/to-do/access-password.txt --trust-proxy --no-reminders
+Restart=on-failure
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/to-do
+
+[Install]
+WantedBy=multi-user.target

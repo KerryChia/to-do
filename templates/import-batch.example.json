@@ -1,0 +1,31 @@
+{
+  "batchId": "replace_with_unique_batch_id",
+  "files": [
+    {
+      "path": "示例课程/通知.txt",
+      "sha256": "REPLACE_WITH_SHA256_FROM_SCAN_MANIFEST",
+      "status": "processed",
+      "tasks": [
+        {
+          "id": "auto_generated_by_submit",
+          "title": "提交演讲提纲",
+          "category": "示例课程",
+          "priority": 3,
+          "priorityDefault": true,
+          "due": "",
+          "remind": 4320,
+          "duration": 30,
+          "completed": false,
+          "notes": "要求：独立完成；提交方式未说明。时长30分钟为规划估计，不是原文要求。",
+          "source": "示例课程/通知.txt",
+          "sourceNotes": "line:3；原文：下次课交演讲提纲，独立完成。",
+          "sourceTiming": "下次课；未提供课程日历，无法确定绝对日期，截止日期留空。",
+          "kind": "assignment",
+          "firedKey": "",
+          "createdAt": "2026-09-09T00:00:00Z",
+          "updatedAt": "2026-09-09T00:00:00Z"
+        }
+      ]
+    }
+  ]
+}
